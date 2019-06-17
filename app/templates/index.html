@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block styles %}
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('.static', filename='index_style.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="navbar" role="navigation">
+    <div class="container-fluid">
+        <ul class="nav navbar-nav filters">
+            <li class="liHover"><a href="/index/today">Today</a></li>
+            <li class="liHover"><a href="/index/thisWeek">This week</a></li>
+            <li class="liHover"><a href="/index/thisMonth">This month</a></li>
+            <li class="liHover"><a href="/index/thisYear">This year</a></li>
+        </ul>
+    </div>
+</div>
+<div class="iframe">
+    <iframe src="{{ res }}" height="1000" width="98%"></iframe>
+</div>
+
+{% endblock %}

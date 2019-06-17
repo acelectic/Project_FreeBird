@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block styles %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for('.static', filename='login_style.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="login">
+    <div class="login-screen">
+        <form action="" method="post" novalidate>
+            <div class="app-title">
+                <h1>Login</h1>
+            </div>
+            {{ form.hidden_tag() }}
+            <div class="login-form">
+                <div class="control-group">
+                    <p>
+                        {{ form.username(size=32, placeholder='username', class="login-field") }}
+                        <label class="login-field-icon fui-user"></label>
+                        {% for error in form.username.errors %}
+                            <span style="color: yellow;">[{{ error }}]</span>
+                        {% endfor %}
+                    </p>
+                </div>
+                <div class="control-group">
+                    <p>
+                        {{ form.password(size=32, placeholder='password', class="login-field") }}
+                        <label class="login-field-icon fui-lock"></label>
+                        {% for error in form.password.errors %}
+                            <span style="color: yellow;">[{{ error }}]</span>
+                        {% endfor %}
+                    </p>
+                </div>
+                <div style="padding-left:3px; padding-right:7px">{{ form.submit(class="btn btn-primary btn-large btn-block") }}</div>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+
+{% endblock %}

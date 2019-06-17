@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block styles %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for('.static', filename='picture_style.css') }}">
+{% endblock %}
+
+{% block content %}
+
+    <div class="table">
+        <div class="pic">
+        <form method="post" action="/picture_search">
+        {{ form.hidden_tag() }}
+        <p style="color:white;font-weight:bold;">Start : {{ form.date() }} {{ form.time() }}</p>
+        <br>
+        <p style="color:white;font-weight:bold;">End &nbsp: {{ form.date2() }} {{ form.time2() }}</p>
+        <br>
+        {{ form.submit() }}
+
+        <hr style="border-color: black;">
+        <br>
+
+        <p style="color:white;">Total search : {{ hits }}</p>
+
+        {% if res %}
+            <table>
+                <tr>
+                    <th>No.</th>
+                    <th>Date/Time</th>
+                    <th>Number of birds</th>
+                    <th>Pictures</th>
+                </tr>
+        {% for i in res %}
+            <tr>
+                <td>{{ res[i]['index'] }}</td>
+                <td><a href="/render_img/{{i}}" target="_blank" style="color: black;"> {{ res[i]['time'] }} </a></td>
+                <td>{{ res[i]['numDetect'] }}</td>
+                <td><button id="myImg" type="submit" style="border: 0; background: transparent; position: fixed; bottom: 8px; right: 16px;">
+                    <img src="/static/line_logo.png" width="70" height="70" alt="submit"></button>
+                </td>
+            </tr>
+        {% endfor %}
+            </table>
+        {% endif %}
+        </form>
+        </div>
+    </div>
+
+{% endblock %}
