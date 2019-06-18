@@ -1,4 +1,4 @@
-from flask import render_template, flash, redirect, url_for, request
+from flask import render_template, flash, redirect, url_for, request, session
 from flask_login import login_user, logout_user, current_user, login_required
 from werkzeug.urls import url_parse
 from app import app
@@ -12,6 +12,7 @@ from dateutil import tz,parser
 from apscheduler.schedulers.background import BackgroundScheduler
 import requests
 import socket
+import jsonify
 
 sched = BackgroundScheduler()
 
@@ -20,6 +21,7 @@ es = Elasticsearch()
 # es_index = 'my_index'
 es_index = 'pigeon-image-test2'
 
+old = {}
 
 @app.route('/')
 @app.route('/index')
@@ -35,18 +37,22 @@ def index(path=None):
     elif path == "thisWeek":
         res = host_  + """/app/kibana#/dashboard/f095b960-8b66-11e9-ae5f-bbba145deeaa?embed=true&_g=(filters%3A!()%2CrefreshInterval%3A(pause%3A!t%2Cvalue%3A2000)%2Ctime%3A(from%3Anow%2Fw%2Cto%3Anow%2Fw))"""
     elif path == "thisMonth":
-        res = host_  + """/app/kibana#/dashboard/f095b960-8b66-11e9-ae5f-bbba145deeaa?embed=true&_g=(filters%3A!()%2CrefreshInterval%3A(pause%3A!t%2Cvalue%3A2000)%2Ctime%3A(from%3Anow%2FM%2Cto%3Anow%2FM))"""
+        res = host_  + """/app/kibana#/dashboard/c1221060-917f-11e9-ba43-3b55f2d261b4?embed=true&_g=(refreshInterval%3A(pause%3A!t%2Cvalue%3A2000)%2Ctime%3A(from%3Anow%2FM%2Cto%3Anow%2FM))"""
     elif path == "thisYear":
-        res = host_  + """/app/kibana#/dashboard/f095b960-8b66-11e9-ae5f-bbba145deeaa?embed=true&_g=(filters%3A!()%2CrefreshInterval%3A(pause%3A!t%2Cvalue%3A2000)%2Ctime%3A(from%3Anow%2Fy%2Cto%3Anow%2Fy))"""
+        res = host_  + """/app/kibana#/dashboard/382dfc50-9180-11e9-ba43-3b55f2d261b4?embed=true&_g=(refreshInterval%3A(pause%3A!t%2Cvalue%3A2000)%2Ctime%3A(from%3Anow%2Fy%2Cto%3Anow%2Fy))"""
     return render_template('index.html', res=res)
+
 
 @app.route('/picture_search', methods=['GET', 'POST'])
 @login_required
-def picture_search():
-    global es_index
+def picture_search(dic = None, hits = None, form = None):
+    global es_index, old
+    if request.method == 'POST':
+        if dic and hits and form:
+            return render_template('picture.html', title='Bird Pictures', form=old['form'], res=old['dic'], hits=old['hits'])
+
     form = DateForm()
     dic = {}
-
 
     if form.is_submitted():
 
@@ -93,19 +99,22 @@ def picture_search():
             central = str(central)[:str(central).index('+')]
             # print(new_time, central)
             try:
-                dic[i['_id']] = {'time': central, 'numDetect': i['_source']['found']['bird'], 'index': e + 1}
+                dic[i['_id']] = {'time': central, 'numDetect': i['_source']['found']['bird'], 'index': e + 1, 'dayofweek':i['_source']['dayofweek_text']}
             except:
                 pass
 
-
             # print(i['_id'], new_time, central)
+            old['dic'] = dic
+            old['hits'] = hits
+            old['form'] = form
+
         return render_template('picture.html', title='Bird Pictures', form=form, res=dic, hits=hits)
     return render_template('picture.html', title='Bird Pictures', form=form, res=dic)
 
-@app.route('/render_img/<path:path>', methods=['GET', 'POST'])
+@app.route('/render_img/<path:path>', methods=['POST'])
 @login_required
 def render_img(path):
-    global es_index
+    global es_index, old
     # print(path)
     body = {
         "query": {
@@ -126,10 +135,17 @@ def render_img(path):
 
     # cv2.imshow('sas', jpg_original)
     # Write to a file to show conversion worked
+    # temp_image = 'app/static/temp_'+path+'.jpg'
     temp_image = 'app/static/temp_image.jpg'
     with open(temp_image, 'wb') as f_output:
     	f_output.write(jpg_original)
-    return render_template('blank.html', img = temp_image, title='Picture')
+    print('Save IMAGE Success')
+    # return render_template('blank.html', img = temp_image, title='Picture')
+    # return render_template('picture.html', title='Bird Pictures', form=form_, res=session['dic'], hits=session['hits'])
+    return render_template('picture.html', title='Bird Pictures', **old)
+
+
+
 
 @app.route('/live')
 @login_required
@@ -213,9 +229,7 @@ def add_header(r):
     """
     r.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
     r.headers["Pragma"] = "no-cache"
-    r.headers["Expires"] = "0"
+    r.headers["Expires"] = "content=0"
     r.headers['Cache-Control'] = 'public, max-age=0'
 
     return r
-
-# yttttttttttttttttttttttttttttt

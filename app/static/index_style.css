@@ -2,6 +2,19 @@
     text-align: center;
 }
 
+#iframe1 {
+    position:absolute;
+    left: 2%;
+    width: 96%;
+    top: 17%;
+    height: 82%;
+}
+
+body {
+    margin: 0;
+    overflow: hidden;
+}
+
 a {
     color: white;
 }
@@ -20,5 +33,9 @@ a {
 .nav > li > a:hover, .nav > li > a:focus {
     background-color: #666666;
     color: white;
+}
 
+#table-iframe {
+    width:90%;
+    height:90%;
 }
