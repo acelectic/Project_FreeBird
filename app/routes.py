@@ -31,15 +31,8 @@ def index(path=None):
     # host_ = "http://localhost:5601"
     host_ = 'http://{}:5601'.format(socket.gethostbyname(socket.gethostname()))
 
-    res = host_  +  """/app/kibana#/dashboard/f095b960-8b66-11e9-ae5f-bbba145deeaa?embed=true&_g=(filters%3A!()%2CrefreshInterval%3A(pause%3A!t%2Cvalue%3A2000)%2Ctime%3A(from%3Anow%2Fd%2Cto%3Anow%2Fd))"""
-    if path == "today":
-        res = host_  + """/app/kibana#/dashboard/f095b960-8b66-11e9-ae5f-bbba145deeaa?embed=true&_g=(filters%3A!()%2CrefreshInterval%3A(pause%3A!t%2Cvalue%3A2000)%2Ctime%3A(from%3Anow%2Fd%2Cto%3Anow%2Fd))"""
-    elif path == "thisWeek":
-        res = host_  + """/app/kibana#/dashboard/f095b960-8b66-11e9-ae5f-bbba145deeaa?embed=true&_g=(filters%3A!()%2CrefreshInterval%3A(pause%3A!t%2Cvalue%3A2000)%2Ctime%3A(from%3Anow%2Fw%2Cto%3Anow%2Fw))"""
-    elif path == "thisMonth":
-        res = host_  + """/app/kibana#/dashboard/c1221060-917f-11e9-ba43-3b55f2d261b4?embed=true&_g=(refreshInterval%3A(pause%3A!t%2Cvalue%3A2000)%2Ctime%3A(from%3Anow%2FM%2Cto%3Anow%2FM))"""
-    elif path == "thisYear":
-        res = host_  + """/app/kibana#/dashboard/382dfc50-9180-11e9-ba43-3b55f2d261b4?embed=true&_g=(refreshInterval%3A(pause%3A!t%2Cvalue%3A2000)%2Ctime%3A(from%3Anow%2Fy%2Cto%3Anow%2Fy))"""
+    res = host_  +  """/app/kibana#/dashboard/c1221060-917f-11e9-ba43-3b55f2d261b4?embed=true&_g=()"""
+
     return render_template('index.html', res=res)
 
 
@@ -65,6 +58,7 @@ def picture_search(dic = None, hits = None, form = None):
 
         body = {
             "size": 1000,
+            "_source": [ "timestamp", "orginal_image", "found.bird", "dayofweek_text"],
             "query": {
                 "range": {
                     "timestamp": {
@@ -89,8 +83,10 @@ def picture_search(dic = None, hits = None, form = None):
             try:
                 new_time = datetime.strptime(i['_source']['timestamp'], '%Y-%m-%dT%H:%M:%S')
             except:
-
-                new_time = datetime.strptime(i['_source']['timestamp'], '%Y-%m-%dT%H:%M:%S+07:00')
+                try:
+                    new_time = datetime.strptime(i['_source']['timestamp'], '%Y-%m-%dT%H:%M:%S+07:00')
+                except:
+                    new_time = datetime.strptime(i['_source']['timestamp'], '%Y-%m-%dT%H:%M:%S.%f+07:00')
 
             from_zone = tz.gettz('UTC')
             to_zone = tz.gettz('Asia/Bangkok')
@@ -117,6 +113,7 @@ def render_img(path):
     global es_index, old
     # print(path)
     body = {
+        "_source": ["orginal_image","original_image"],
         "query": {
             "match": {
                 "_id": {
@@ -126,7 +123,10 @@ def render_img(path):
         }
     }
     res = es.search(index=es_index, doc_type='_doc', body=body, scroll='1m')['hits']['hits']
-    aa = str.encode(res[0]['_source']['orginal_image'])
+    try:
+        aa = str.encode(res[0]['_source']['orginal_image'])
+    except:
+        aa = str.encode(res[0]['_source']['original_image'])
     aa = aa[2:-1]
     # print(type(aa))
     # print()
